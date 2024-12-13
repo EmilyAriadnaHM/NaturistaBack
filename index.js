@@ -58,6 +58,9 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Ruta para registrar usuarios
+
+app.get('/isAlive', (req, res) => {res.send(200);});
+
 app.post('/api/usuarios', async (req, res) => {
   const { nombre_usuario, contraseña, rol = 'cliente' } = req.body;
   if (!nombre_usuario || !contraseña) {
