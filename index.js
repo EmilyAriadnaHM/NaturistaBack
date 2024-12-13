@@ -1,3 +1,4 @@
+const PORT = require("./env.js");
 const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
@@ -5,35 +6,12 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
-const connection = require('./db');
+const connection = require('./db.js');
 const app = express();
 app.use(cors());
 
-// Lista de orígenes permitidos
-const allowedOrigins = [
-  'http://127.0.0.1:3000',
-  'http://localhost:8081',
-  'http://192.168.137.80', //movil
-  'http://192.168.1.165', //movil
-  'http://192.168.1.94', //pc
-  'exp://192.168.1.165:19000',
-  'http://192.168.137.206',
-  'http://10.168.3.11'
-  
-];
-
 // Configuración de CORS
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('No permitido por CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use(cors());
 
 // Middleware para analizar JSON
 app.use(bodyParser.json());
@@ -59,7 +37,9 @@ const upload = multer({ storage });
 
 // Ruta para registrar usuarios
 
-app.get('/isAlive', (req, res) => {res.send(200);});
+app.get('/api/isAlive', (req, res) => {
+  res.send({message: 'Hello World'});
+});
 
 app.post('/api/usuarios', async (req, res) => {
   const { nombre_usuario, contraseña, rol = 'cliente' } = req.body;
@@ -139,7 +119,7 @@ function authenticateToken(req, res, next) {
 // CRUD Productos con imágenes
 app.post('/api/productos', authenticateToken, upload.single('imagen'), (req, res) => {
   const { nombre_producto, precio, cantidad, id_categoria } = req.body;
-  const imagen_url = req.file ? `http://10.168.3.11:3000/uploads/${req.file.filename}` : null;
+  const imagen_url = req.file ? `/uploads/${req.file.filename}` : null;
   
 
   const sql = 'INSERT INTO productos (nombre_producto, precio, cantidad, id_categoria, imagen_url) VALUES (?, ?, ?, ?, ?)';
@@ -166,7 +146,7 @@ app.get('/api/productos', authenticateToken, (req, res) => {
 app.put('/api/productos/:id', authenticateToken, upload.single('imagen'), (req, res) => {
   const { id } = req.params;
   const { nombre_producto, precio, cantidad, id_categoria } = req.body;
-  const imagen_url = req.file ? `http://10.168.3.11:3000/uploads/${req.file.filename}` : null;
+  const imagen_url = req.file ? `/uploads/${req.file.filename}` : null;
   
 
   // Construir la consulta SQL y los parámetros
@@ -488,7 +468,4 @@ app.post('/api/comprar', authenticateToken, (req, res) => {
 
 
 
-app.listen(3000, '10.168.3.11', () => {
-    console.log('Servidor iniciado en http://10.168.3.11:3000');
-});
-
+app.listen(app.get(PORT));
